@@ -929,6 +929,35 @@ def profile():
     return jsonify({'username': name, 'roll_no': roll_no, 'user_ip': user_ip, 'device_name': device_name})
 
 
+@app.route('/reset', methods=['GET','POST'])
+def reset():
+
+    return render_template('reset.html')
+
+@app.route('/reset_password', methods=['GET','POST'])
+def reset_password():
+    
+    admin_name = session.get('admin_username')
+
+    if request.method == 'POST':
+        new_password = request.form['new_password']
+        confirm_password = request.form['confirm_password']
+
+        # Check if passwords match
+        if new_password != confirm_password:
+            flash('Passwords do not match!', 'error')
+            return redirect(url_for('reset'))
+        
+        db = get_db()
+        db.execute('UPDATE Admins SET Password = ? WHERE Username = ? ', (new_password,admin_name))
+        db.commit()
+
+        flash('Password successfully updated!', 'success')
+        return redirect(url_for('admin_login'))
+    
+    return redirect(url_for('reset'))
+
+
 # Route to logout and end the session
 @app.route('/logout')
 def logout():
