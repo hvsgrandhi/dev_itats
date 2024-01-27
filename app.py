@@ -912,6 +912,70 @@ def analytics():
     return render_template('analytics.html', plot_html=analytics_data, error_message=error_message,department=department)
 
 
+@app.route('/attendance_summary_by_student', methods=['GET', 'POST'])
+def attendance_summary_by_student():
+    if 'admin_username' not in session:
+        return redirect(url_for('admin_login'))
+
+    department = session.get('admin_dept')
+
+    if request.method == 'POST':
+        year = request.form['year']
+        start_date = request.form['start_date']
+        end_date = request.form['end_date']
+
+        if not (year and start_date and end_date):
+            return jsonify({'error': 'Missing required fields'}), 400
+
+        # Fetch all students of the specified year
+        students = query_db('SELECT roll_no FROM students WHERE year = ? AND Department = ?', (year, department,))
+        if not students:  # Check if students is None or empty
+            return jsonify({'error': 'No students found'}), 404
+
+        attendance_summary = {}
+        if department == "Electrical":
+            department = "Elec"
+
+        if department in ["IT", "AInDS", "Elec"]:
+            # Fetch attendance records
+            records = query_db(f'''SELECT rollno, subject, COUNT(*) as lectures_attended 
+                                   FROM {department}_attendance 
+                                   WHERE year = ? AND date BETWEEN ? AND ? AND attendance = 1 
+                                   GROUP BY rollno, subject''', 
+                               (year, start_date, end_date))
+            if not records:  # Check if records is None or empty
+                return jsonify({'error': 'No attendance records found'}), 404
+
+            # Fetch total lecture count for each subject
+            total_lectures_query = query_db(f'''SELECT subject, COUNT(DISTINCT date) as total_lectures 
+                                                FROM {department}_attendance 
+                                                WHERE year = ? AND date BETWEEN ? AND ? 
+                                                GROUP BY subject''',
+                                            (year, start_date, end_date))
+            if not total_lectures_query:  # Check if total_lectures_query is None or empty
+                return jsonify({'error': 'No lecture data found'}), 404
+
+            total_lectures = {item['subject']: item['total_lectures'] for item in total_lectures_query}
+
+            # Initialize attendance summary for each student
+            attendance_summary = {student['roll_no']: {subject: 0 for subject in total_lectures} for student in students}
+
+            # Populate attendance summary with actual data
+            for record in records:
+                roll_no = record['rollno']
+                subject = record['subject']
+                lectures_attended = record['lectures_attended']
+                if roll_no in attendance_summary:
+                    attendance_summary[roll_no][subject] = lectures_attended
+
+            return render_template('attendance_summary.html', 
+                                attendance_summary=attendance_summary, 
+                                total_lectures=total_lectures)
+
+    return render_template('attendance.html')
+
+
+
 
 
 @app.route('/studentcnt')
