@@ -483,7 +483,7 @@ def login():
             # Create a session for the logged-in student
             session['roll_no'] = user['roll_no']
             session['name'] = user['name']
-            session['department'] = user['department']
+            # session['department'] = user['department']
 
 
             # Redirect to the QR scanner page after successful login
