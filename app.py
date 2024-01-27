@@ -82,11 +82,23 @@ def generate_qr_code(qr_data):
 
 def check_existing_records(subject_name, time_slot, date):
 
+    department = session.get('admin_dept')
+
+    if department == "IT":
     # Check if records already exist in IT_attendance
-    existing_records = query_db('SELECT * FROM IT_attendance WHERE subject = ? AND time = ? AND date = ?',
+        existing_records = query_db('SELECT * FROM IT_attendance WHERE subject = ? AND time = ? AND date = ?',
+                                (subject_name, time_slot, date))
+
+    elif department == "AInDS":
+        existing_records = query_db('SELECT * FROM AInDS_attendance WHERE subject = ? AND time = ? AND date = ?',
+                                (subject_name, time_slot, date))
+
+    else:
+        existing_records = query_db('SELECT * FROM Elec_attendance WHERE subject = ? AND time = ? AND date = ?',
                                 (subject_name, time_slot, date))
 
     return bool(existing_records)
+
 
 
 
