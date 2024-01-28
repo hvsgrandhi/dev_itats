@@ -1212,7 +1212,7 @@ def prompt():
         # Execute the SQL query and format the result
         sql_query_result = read_sql_query(sql_response, "students.db")
         formatted_sql_result = ', '.join([' '.join(map(str, row)) for row in sql_query_result])
-
+        #test
         # Combine user input and SQL query result for context
         combined_context = f"User query: {user_input}. SQL result: {formatted_sql_result}"
 
