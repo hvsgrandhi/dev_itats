@@ -11,16 +11,21 @@ from datetime import datetime, timedelta
 from io import BytesIO
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
-
+import google.generativeai as genai
 
 
 app = Flask(__name__)
 app.config['DATABASE'] = 'students.db'
 app.secret_key = '6NWMu7ewCqm7GX6tbG0hOJmU8QNWZ2A5'
 
+GOOGLE_API_KEY= "AIzaSyA6Ga8yGLeMc7pCali3x8Hj3Itjk6ihAmQ"
+genai.configure(api_key=GOOGLE_API_KEY)
+
+
+
 # Initialize attendance_status
 attendance_status = {'qr_data': '', 'qr_image': ''}
- 
+
 
 
 
@@ -78,6 +83,167 @@ def generate_qr_code(qr_data):
     img.save(img_buffer)
     img_str = base64.b64encode(img_buffer.getvalue()).decode('utf-8')
     return img_str
+
+
+
+def get_gemini_response(question,prompt):
+    model = genai.GenerativeModel('gemini-pro')
+    response=model.generate_content([prompt[0],question])
+    return response.text
+
+def read_sql_query(sql,db):
+    conn = sqlite3.connect(db)
+    cur = conn.cursor()
+    cur.execute(sql)
+    rows = cur.fetchall()
+    conn.commit()
+    conn.close()
+    for row in rows:
+        print(row)
+    return rows
+
+prompt1=[
+    """
+    You are an expert in converting English questions to SQL query!
+    The SQL database has the name students and has the following tables:
+    \nCREATE TABLE students (
+    roll_no VARCHAR(10) PRIMARY KEY,
+    name VARCHAR(50),
+    password VARCHAR(50)
+    , elective1 VARCHAR(50), device_name TEXT, year VARCHAR, elective2 VARCHAR(50), Department VARCHAR) ,\n CREATE TABLE QR_key (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    key_field VARCHAR(100)
+    , teacher_id INTEGER) ,\n CREATE TABLE Admins(
+    Username VARCHAR(25) PRIMARY KEY,  
+    Password VARCHAR(25),  
+    Div VARCHAR(10),    
+    Dept VARCHAR(50),  
+    Class VARCHAR(10)        
+    , teacher_id INTEGER, Acronym VARCHAR),\n
+    CREATE TABLE "IT_attendance"(
+    rollno VARCHAR(20),
+    stdname VARCHAR(25),
+    subject VARCHAR(50),
+    date DATE,
+    time TIME,
+    attendance BOOLEAN
+    , teacher_id INTEGER, year VARCHAR, QR_time TEXT, Flag Boolean, TOS TOS VARCHAR),\nCREATE TABLE "AInDS_attendance"(
+    rollno VARCHAR(20),
+    stdname VARCHAR(25),
+    subject VARCHAR(50),
+    date DATE,
+    time TIME,
+    attendance BOOLEAN
+    , teacher_id INTEGER, year VARCHAR, QR_time TEXT, Flag Boolean, TOS TOS VARCHAR),\n
+    CREATE TABLE "Elec_attendance"(
+    rollno VARCHAR(20),
+    stdname VARCHAR(25),
+    subject VARCHAR(50),
+    date DATE,
+    time TIME,
+    attendance BOOLEAN
+    , teacher_id INTEGER, year VARCHAR, QR_time TEXT, Flag Boolean, TOS TOS VARCHAR),\n
+    CREATE TABLE "IT_SE_TT" (
+    id INTEGER PRIMARY KEY,
+    day TEXT NOT NULL,
+    time_slot TEXT NOT NULL,
+    subject TEXT,
+    instructor TEXT,
+    room TEXT,
+    UNIQUE (day, time_slot)),\n
+    CREATE TABLE "IT_TE_TT" (
+    id INTEGER PRIMARY KEY,
+    day TEXT NOT NULL,
+    time_slot TEXT NOT NULL,
+    subject TEXT,
+    instructor TEXT,
+    room TEXT,
+    UNIQUE (day, time_slot)),\n
+    CREATE TABLE "IT_BE_TT" (
+    id INTEGER PRIMARY KEY,
+    day TEXT NOT NULL,
+    time_slot TEXT NOT NULL,
+    subject TEXT,
+    instructor TEXT,
+    room TEXT,
+    UNIQUE (day, time_slot)),\n
+    CREATE TABLE "Elec_SE_TT" (
+    id INTEGER PRIMARY KEY,
+    day TEXT NOT NULL,
+    time_slot TEXT NOT NULL,
+    subject TEXT,
+    instructor TEXT,
+    room TEXT,
+    UNIQUE (day, time_slot)),\n
+    CREATE TABLE "Elec_TE_TT" (
+    id INTEGER PRIMARY KEY,
+    day TEXT NOT NULL,
+    time_slot TEXT NOT NULL,
+    subject TEXT,
+    instructor TEXT,
+    room TEXT,
+    UNIQUE (day, time_slot)),\n
+    CREATE TABLE "Elec_BE_TT" (
+    id INTEGER PRIMARY KEY,
+    day TEXT NOT NULL,
+    time_slot TEXT NOT NULL,
+    subject TEXT,
+    instructor TEXT,
+    room TEXT,
+    UNIQUE (day, time_slot)),\n
+    CREATE TABLE "AInDS_SE_TT" (
+    id INTEGER PRIMARY KEY,
+    day TEXT NOT NULL,
+    time_slot TEXT NOT NULL,
+    subject TEXT,
+    instructor TEXT,
+    room TEXT,
+    UNIQUE (day, time_slot)),\n
+    CREATE TABLE "AInDS_TE_TT" (
+    id INTEGER PRIMARY KEY,
+    day TEXT NOT NULL,
+    time_slot TEXT NOT NULL,
+    subject TEXT,
+    instructor TEXT,
+    room TEXT,
+    UNIQUE (day, time_slot)),\n\nFor example, \nExample 1 - Retrieve the names of all students who have 'Data Structures' as an elective and are in the 'Computer Science' department. SQL Query: SELECT name FROM students WHERE elective1 = 'Data Structures' AND Department = 'Computer Science'; 
+    \nExample 2 - Find the total number of students who were present in the 'Machine Learning' class on '2023-09-15'.
+    SQL Query: SELECT COUNT(rollno) FROM AInDS_attendance WHERE subject = 'Machine Learning' AND date = '2023-09-15' AND attendance = TRUE;
+    \nExample 3 - List the schedule of 'Computer Networks' class for 'IT' department on Wednesdays.
+    SQL Query: SELECT day, time_slot, instructor, room FROM IT_SE_TT WHERE subject = 'Computer Networks' AND day = 'Wednesday';
+    \nExample 4 - Get the details of all teachers who have taught 'Artificial Intelligence' in the 'Electrical' department.
+    SQL Query: SELECT DISTINCT instructor FROM Elec_SE_TT WHERE subject = 'Artificial Intelligence' UNION SELECT DISTINCT instructor FROM Elec_TE_TT WHERE subject = 'Artificial Intelligence' UNION SELECT DISTINCT instructor FROM Elec_BE_TT WHERE subject = 'Artificial Intelligence';
+    \nExample 5 - Identify students who have not attended any 'Operating Systems' classes in the current month.
+    SQL Query: SELECT name FROM students WHERE roll_no NOT IN (SELECT rollno FROM IT_attendance WHERE subject = 'Operating Systems' AND date BETWEEN '2024-01-01' AND '2024-01-31' AND attendance = 1);
+    \nExample 6 - Display the timetable for 'Third Year' students in the 'Electrical' department.
+    SQL Query: SELECT * FROM Elec_TE_TT WHERE id IN (SELECT id FROM Elec_TE_TT GROUP BY day, time_slot HAVING COUNT(*) = 1);
+    \n Note: under any circumstance do not write a query which might result in update, insert or delete operation.Also do not  write queries which might change the  database or manipulate the database only write queries which can display the infformation from the database
+    if any such query is requested return this particular response "Can't do that!!"
+    \nalso the sql code should not have ``` in beginning or end and sql word in output
+    
+
+    """
+
+
+]
+
+
+prompt2 = [
+    """
+    You are receiving a combined string of the user's query and the SQL query results. Your task is to understand the context of the user's query and the content of the SQL results, and then generate a response that is easy to understand by the user. The input format will be 'User query: [user's query]. SQL result: [SQL query results]'.
+
+    Your response should focus on interpreting the SQL data in the context of the user's query. Ensure that your response is relevant to the user's original request and is framed in a way that is easily understandable.
+
+    Also a note : the user doesn't know that that his reponse is being converted into query in order to display him any data. So keep it that way incase query is empty or something else.
+    For example:
+    - Input: "User query: List all students with Android devices. SQL result: ['John Doe; Android 10; Pixel 4']", 
+      Response: "John Doe has an Android device, specifically a Pixel 4 running Android 10."
+    - Input: "User query: Show attendance for the Machine Learning class on 2023-09-15. SQL result: ['15 students were present']", 
+      Response: "On 2023-09-15, there were 15 students present in the Machine Learning class."
+      
+    """
+]
+
 
 
 def check_existing_records(subject_name, time_slot, date):
@@ -1032,6 +1198,30 @@ def reset_password():
         return redirect(url_for('admin_login'))
     
     return redirect(url_for('reset'))
+
+@app.route('/prompt', methods=['GET', 'POST'])
+def prompt():
+    if request.method == 'POST':
+        user_input = request.form['textInput']
+        
+        # Get the SQL query response
+        sql_response = get_gemini_response(user_input, prompt1)
+        if sql_response == "Can't do that!!":
+            return render_template('prompt.html', user_input=user_input, response=sql_response)
+
+        # Execute the SQL query and format the result
+        sql_query_result = read_sql_query(sql_response, "students.db")
+        formatted_sql_result = ', '.join([' '.join(map(str, row)) for row in sql_query_result])
+
+        # Combine user input and SQL query result for context
+        combined_context = f"User query: {user_input}. SQL result: {formatted_sql_result}"
+
+        # Pass the combined context for the final response
+        final_response = get_gemini_response(combined_context, prompt2)
+
+        return render_template('prompt.html', user_input=user_input, response=final_response)
+
+    return render_template('prompt.html', response=None)
 
 
 # Route to logout and end the session
