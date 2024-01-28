@@ -235,6 +235,109 @@ prompt2 = [
     Your response should focus on interpreting the SQL data in the context of the user's query. Ensure that your response is relevant to the user's original request and is framed in a way that is easily understandable.
 
     Also a note : the user doesn't know that that his reponse is being converted into query in order to display him any data. So keep it that way incase query is empty or something else.
+    The SQL database has the name students and has the following tables:
+    \nCREATE TABLE students (
+    roll_no VARCHAR(10) PRIMARY KEY,
+    name VARCHAR(50),
+    password VARCHAR(50)
+    , elective1 VARCHAR(50), device_name TEXT, year VARCHAR, elective2 VARCHAR(50), Department VARCHAR) ,\n CREATE TABLE QR_key (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    key_field VARCHAR(100)
+    , teacher_id INTEGER) ,\n CREATE TABLE Admins(
+    Username VARCHAR(25) PRIMARY KEY,  
+    Password VARCHAR(25),  
+    Div VARCHAR(10),    
+    Dept VARCHAR(50),  
+    Class VARCHAR(10)        
+    , teacher_id INTEGER, Acronym VARCHAR),\n
+    CREATE TABLE "IT_attendance"(
+    rollno VARCHAR(20),
+    stdname VARCHAR(25),
+    subject VARCHAR(50),
+    date DATE,
+    time TIME,
+    attendance BOOLEAN
+    , teacher_id INTEGER, year VARCHAR, QR_time TEXT, Flag Boolean, TOS TOS VARCHAR),\nCREATE TABLE "AInDS_attendance"(
+    rollno VARCHAR(20),
+    stdname VARCHAR(25),
+    subject VARCHAR(50),
+    date DATE,
+    time TIME,
+    attendance BOOLEAN
+    , teacher_id INTEGER, year VARCHAR, QR_time TEXT, Flag Boolean, TOS TOS VARCHAR),\n
+    CREATE TABLE "Elec_attendance"(
+    rollno VARCHAR(20),
+    stdname VARCHAR(25),
+    subject VARCHAR(50),
+    date DATE,
+    time TIME,
+    attendance BOOLEAN
+    , teacher_id INTEGER, year VARCHAR, QR_time TEXT, Flag Boolean, TOS TOS VARCHAR),\n
+    CREATE TABLE "IT_SE_TT" (
+    id INTEGER PRIMARY KEY,
+    day TEXT NOT NULL,
+    time_slot TEXT NOT NULL,
+    subject TEXT,
+    instructor TEXT,
+    room TEXT,
+    UNIQUE (day, time_slot)),\n
+    CREATE TABLE "IT_TE_TT" (
+    id INTEGER PRIMARY KEY,
+    day TEXT NOT NULL,
+    time_slot TEXT NOT NULL,
+    subject TEXT,
+    instructor TEXT,
+    room TEXT,
+    UNIQUE (day, time_slot)),\n
+    CREATE TABLE "IT_BE_TT" (
+    id INTEGER PRIMARY KEY,
+    day TEXT NOT NULL,
+    time_slot TEXT NOT NULL,
+    subject TEXT,
+    instructor TEXT,
+    room TEXT,
+    UNIQUE (day, time_slot)),\n
+    CREATE TABLE "Elec_SE_TT" (
+    id INTEGER PRIMARY KEY,
+    day TEXT NOT NULL,
+    time_slot TEXT NOT NULL,
+    subject TEXT,
+    instructor TEXT,
+    room TEXT,
+    UNIQUE (day, time_slot)),\n
+    CREATE TABLE "Elec_TE_TT" (
+    id INTEGER PRIMARY KEY,
+    day TEXT NOT NULL,
+    time_slot TEXT NOT NULL,
+    subject TEXT,
+    instructor TEXT,
+    room TEXT,
+    UNIQUE (day, time_slot)),\n
+    CREATE TABLE "Elec_BE_TT" (
+    id INTEGER PRIMARY KEY,
+    day TEXT NOT NULL,
+    time_slot TEXT NOT NULL,
+    subject TEXT,
+    instructor TEXT,
+    room TEXT,
+    UNIQUE (day, time_slot)),\n
+    CREATE TABLE "AInDS_SE_TT" (
+    id INTEGER PRIMARY KEY,
+    day TEXT NOT NULL,
+    time_slot TEXT NOT NULL,
+    subject TEXT,
+    instructor TEXT,
+    room TEXT,
+    UNIQUE (day, time_slot)),\n
+    CREATE TABLE "AInDS_TE_TT" (
+    id INTEGER PRIMARY KEY,
+    day TEXT NOT NULL,
+    time_slot TEXT NOT NULL,
+    subject TEXT,
+    instructor TEXT,
+    room TEXT,
+    UNIQUE (day, time_slot))
+    
     For example:
     - Input: "User query: List all students with Android devices. SQL result: ['John Doe; Android 10; Pixel 4']", 
       Response: "John Doe has an Android device, specifically a Pixel 4 running Android 10."
@@ -1206,6 +1309,7 @@ def prompt():
         
         # Get the SQL query response
         sql_response = get_gemini_response(user_input, prompt1)
+        print(sql_response)
         if sql_response == "Can't do that!!":
             return render_template('prompt.html', user_input=user_input, response=sql_response)
 
