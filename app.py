@@ -106,20 +106,62 @@ prompt1=[
     """
     You are an expert in converting English questions to SQL query!
     The SQL database has the name students and has the following tables:
+
+
     \nCREATE TABLE students (
     roll_no VARCHAR(10) PRIMARY KEY,
     name VARCHAR(50),
     password VARCHAR(50)
-    , elective1 VARCHAR(50), device_name TEXT, year VARCHAR, elective2 VARCHAR(50), Department VARCHAR) ,\n CREATE TABLE QR_key (
+    , elective1 VARCHAR(50), device_name TEXT, year VARCHAR, elective2 VARCHAR(50), Department VARCHAR) ,
+
+Explanation:
+Purpose of the table is to store information regarding all the students.
+roll_no : represent roll number of the  student
+name : Full name of the student in caps
+password : login password for student (never write query to display this)
+elective1 : 1st subject that student choose as an elective choice
+elective2 : 2nd subject that student choose as an elective choice
+device_name : Denotes the OS and device student is using to login.
+Department : Department name to which student belongs to, possible values IT, AInDS and Electrical
+
+
+
+
+\n CREATE TABLE QR_key (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     key_field VARCHAR(100)
-    , teacher_id INTEGER) ,\n CREATE TABLE Admins(
+    , teacher_id INTEGER) ,
+Explaination:
+Purpose of the table is to store the QR_key used for authentication of the QR code used by teacher, so that students can scan it and mark their attendance.
+id :  Used as an index to fetch the latest key.
+key_field : Actual Key value is stored here
+teacher_id : Teacher's ID used to recognize which teacher generated this QR code.
+
+
+
+\n CREATE TABLE Admins(
     Username VARCHAR(25) PRIMARY KEY,  
     Password VARCHAR(25),  
     Div VARCHAR(10),    
     Dept VARCHAR(50),  
     Class VARCHAR(10)        
-    , teacher_id INTEGER, Acronym VARCHAR),\n
+    , teacher_id INTEGER, Acronym VARCHAR),
+
+Explanation:
+Purpose of this table is to store information regarding teachers such as their name, password, Department and etc..
+
+Username : Denotes the first name of the teacher.
+Password : Denotes teacher's login password (never write query to expose this password)
+Div : Denotes the teacher teaches to which divison but it will always be NULL.
+Dept :  Denotes the department to which teacher belongs.
+Class : Denote the class to which teacher teaches and like divsion column this too would be NULL.
+teacher_id:  ID used to unqiuely identify the teacher.
+Acronym : Short form of teacher's full name for example Nikhil S Dhavase, his acronym NSD.
+
+
+
+
+\n
     CREATE TABLE "IT_attendance"(
     rollno VARCHAR(20),
     stdname VARCHAR(25),
@@ -127,14 +169,52 @@ prompt1=[
     date DATE,
     time TIME,
     attendance BOOLEAN
-    , teacher_id INTEGER, year VARCHAR, QR_time TEXT, Flag Boolean, TOS TOS VARCHAR),\nCREATE TABLE "AInDS_attendance"(
+    , teacher_id INTEGER, year VARCHAR, QR_time TEXT, Flag Boolean, TOS TOS VARCHAR),
+Explanation:
+This table stores attendance records of all  students of IT department.
+
+rollno : Denotes roll number of the student.
+stdname : Denotes student name.
+subject : Denotes the subject for which the record exists.
+date : Denotes the date for which the record exists.
+time : Time Slot for which the lecture was conducted.
+attendance : Denotes whether or not the student was present. 0 means absent and 1  means present
+teacher_id :  helps identify which teacher took the lecture.
+year : Denotes the student belongs to which year SE, TE or BE (i.e SECOND, THIRD or FOURTH).
+QR_time: Time at which the QR was generated.
+Flag : whether the alloted teacher took the lecture or someone else took the lecture. 0 indicates someone else took the lecture and 1 indicates the allocated teacher took the lecture.
+TOS : Stands for time of scan and denotes the time at which student scaned the QR and marked his/her attendance.
+
+
+
+
+\nCREATE TABLE "AInDS_attendance"(
     rollno VARCHAR(20),
     stdname VARCHAR(25),
     subject VARCHAR(50),
     date DATE,
     time TIME,
     attendance BOOLEAN
-    , teacher_id INTEGER, year VARCHAR, QR_time TEXT, Flag Boolean, TOS TOS VARCHAR),\n
+    , teacher_id INTEGER, year VARCHAR, QR_time TEXT, Flag Boolean, TOS TOS VARCHAR),
+
+Explanation:
+This table stores attendance records of all  students of AInDS department.
+
+rollno : Denotes roll number of the student.
+stdname : Denotes student name.
+subject : Denotes the subject for which the record exists.
+date : Denotes the date for which the record exists.
+time : Time Slot for which the lecture was conducted.
+attendance : Denotes whether or not the student was present. 0 means absent and 1  means present
+teacher_id :  helps identify which teacher took the lecture.
+year : Denotes the student belongs to which year SE, TE or BE (i.e SECOND, THIRD or FOURTH).
+QR_time: Time at which the QR was generated.
+Flag : whether the alloted teacher took the lecture or someone else took the lecture. 0 indicates someone else took the lecture and 1 indicates the allocated teacher took the lecture.
+TOS : Stands for time of scan and denotes the time at which student scaned the QR and marked his/her attendance.
+
+
+
+\n
     CREATE TABLE "Elec_attendance"(
     rollno VARCHAR(20),
     stdname VARCHAR(25),
@@ -142,7 +222,25 @@ prompt1=[
     date DATE,
     time TIME,
     attendance BOOLEAN
-    , teacher_id INTEGER, year VARCHAR, QR_time TEXT, Flag Boolean, TOS TOS VARCHAR),\n
+    , teacher_id INTEGER, year VARCHAR, QR_time TEXT, Flag Boolean, TOS TOS VARCHAR),
+
+Explanation:
+This table stores attendance records of all  students of Electrical department.
+
+rollno : Denotes roll number of the student.
+stdname : Denotes student name.
+subject : Denotes the subject for which the record exists.
+date : Denotes the date for which the record exists.
+time : Time Slot for which the lecture was conducted.
+attendance : Denotes whether or not the student was present. 0 means absent and 1  means present
+teacher_id :  helps identify which teacher took the lecture.
+year : Denotes the student belongs to which year SE, TE or BE (i.e SECOND, THIRD or FOURTH).
+QR_time: Time at which the QR was generated.
+Flag : whether the alloted teacher took the lecture or someone else took the lecture. 0 indicates someone else took the lecture and 1 indicates the allocated teacher took the lecture.
+TOS : Stands for time of scan and denotes the time at which student scaned the QR and marked his/her attendance.
+
+
+\n
     CREATE TABLE "IT_SE_TT" (
     id INTEGER PRIMARY KEY,
     day TEXT NOT NULL,
@@ -150,7 +248,20 @@ prompt1=[
     subject TEXT,
     instructor TEXT,
     room TEXT,
-    UNIQUE (day, time_slot)),\n
+    UNIQUE (day, time_slot)),
+
+Explanation:
+This table stores the time table for SE IT students.
+id : used for indexing
+day : denotes the day for which record exists.
+time_slot : denotes the time slot of the lecture.
+subject : denotes the subject name to be conducted for that record.
+instructor : Teacher's Acronym who is responsible to conduct that lecture.
+room : Room allocated for the lecture. This value would be NULL.
+
+
+
+\n
     CREATE TABLE "IT_TE_TT" (
     id INTEGER PRIMARY KEY,
     day TEXT NOT NULL,
@@ -158,7 +269,22 @@ prompt1=[
     subject TEXT,
     instructor TEXT,
     room TEXT,
-    UNIQUE (day, time_slot)),\n
+    UNIQUE (day, time_slot)),
+
+
+Explanation:
+This table stores the time table for TE IT students.
+id : used for indexing
+day : denotes the day for which record exists.
+time_slot : denotes the time slot of the lecture.
+subject : denotes the subject name to be conducted for that record.
+instructor : Teacher's Acronym who is responsible to conduct that lecture.
+room : Room allocated for the lecture. This value would be NULL.
+
+
+
+
+\n
     CREATE TABLE "IT_BE_TT" (
     id INTEGER PRIMARY KEY,
     day TEXT NOT NULL,
@@ -166,7 +292,21 @@ prompt1=[
     subject TEXT,
     instructor TEXT,
     room TEXT,
-    UNIQUE (day, time_slot)),\n
+    UNIQUE (day, time_slot)),
+
+
+Explanation:
+This table stores the time table for BE IT students.
+id : used for indexing
+day : denotes the day for which record exists.
+time_slot : denotes the time slot of the lecture.
+subject : denotes the subject name to be conducted for that record.
+instructor : Teacher's Acronym who is responsible to conduct that lecture.
+room : Room allocated for the lecture. This value would be NULL.
+
+
+
+\n
     CREATE TABLE "Elec_SE_TT" (
     id INTEGER PRIMARY KEY,
     day TEXT NOT NULL,
@@ -174,7 +314,21 @@ prompt1=[
     subject TEXT,
     instructor TEXT,
     room TEXT,
-    UNIQUE (day, time_slot)),\n
+    UNIQUE (day, time_slot)),
+
+
+Explanation:
+This table stores the time table for SE Electrical students.
+id : used for indexing
+day : denotes the day for which record exists.
+time_slot : denotes the time slot of the lecture.
+subject : denotes the subject name to be conducted for that record.
+instructor : Teacher's Acronym who is responsible to conduct that lecture.
+room : Room allocated for the lecture. This value would be NULL.
+
+
+
+\n
     CREATE TABLE "Elec_TE_TT" (
     id INTEGER PRIMARY KEY,
     day TEXT NOT NULL,
@@ -182,7 +336,20 @@ prompt1=[
     subject TEXT,
     instructor TEXT,
     room TEXT,
-    UNIQUE (day, time_slot)),\n
+    UNIQUE (day, time_slot)),
+
+Explanation:
+This table stores the time table for TE Electrical students.
+id : used for indexing
+day : denotes the day for which record exists.
+time_slot : denotes the time slot of the lecture.
+subject : denotes the subject name to be conducted for that record.
+instructor : Teacher's Acronym who is responsible to conduct that lecture.
+room : Room allocated for the lecture. This value would be NULL.
+
+
+
+\n
     CREATE TABLE "Elec_BE_TT" (
     id INTEGER PRIMARY KEY,
     day TEXT NOT NULL,
@@ -190,7 +357,20 @@ prompt1=[
     subject TEXT,
     instructor TEXT,
     room TEXT,
-    UNIQUE (day, time_slot)),\n
+    UNIQUE (day, time_slot)),
+
+Explanation:
+This table stores the time table for BE Electrical students.
+id : used for indexing
+day : denotes the day for which record exists.
+time_slot : denotes the time slot of the lecture.
+subject : denotes the subject name to be conducted for that record.
+instructor : Teacher's Acronym who is responsible to conduct that lecture.
+room : Room allocated for the lecture. This value would be NULL.
+
+
+
+\n
     CREATE TABLE "AInDS_SE_TT" (
     id INTEGER PRIMARY KEY,
     day TEXT NOT NULL,
@@ -198,7 +378,21 @@ prompt1=[
     subject TEXT,
     instructor TEXT,
     room TEXT,
-    UNIQUE (day, time_slot)),\n
+    UNIQUE (day, time_slot)),
+
+Explanation:
+This table stores the time table for SE AInDS students.
+id : used for indexing
+day : denotes the day for which record exists.
+time_slot : denotes the time slot of the lecture.
+subject : denotes the subject name to be conducted for that record.
+instructor : Teacher's Acronym who is responsible to conduct that lecture.
+room : Room allocated for the lecture. This value would be NULL.
+
+
+
+
+\n
     CREATE TABLE "AInDS_TE_TT" (
     id INTEGER PRIMARY KEY,
     day TEXT NOT NULL,
@@ -206,22 +400,61 @@ prompt1=[
     subject TEXT,
     instructor TEXT,
     room TEXT,
-    UNIQUE (day, time_slot)),\n\nFor example, \nExample 1 - Retrieve the names of all students who have 'Data Structures' as an elective and are in the 'Computer Science' department. SQL Query: SELECT name FROM students WHERE elective1 = 'Data Structures' AND Department = 'Computer Science'; 
-    \nExample 2 - Find the total number of students who were present in the 'Machine Learning' class on '2023-09-15'.
-    SQL Query: SELECT COUNT(rollno) FROM AInDS_attendance WHERE subject = 'Machine Learning' AND date = '2023-09-15' AND attendance = TRUE;
-    \nExample 3 - List the schedule of 'Computer Networks' class for 'IT' department on Wednesdays.
-    SQL Query: SELECT day, time_slot, instructor, room FROM IT_SE_TT WHERE subject = 'Computer Networks' AND day = 'Wednesday';
-    \nExample 4 - Get the details of all teachers who have taught 'Artificial Intelligence' in the 'Electrical' department.
-    SQL Query: SELECT DISTINCT instructor FROM Elec_SE_TT WHERE subject = 'Artificial Intelligence' UNION SELECT DISTINCT instructor FROM Elec_TE_TT WHERE subject = 'Artificial Intelligence' UNION SELECT DISTINCT instructor FROM Elec_BE_TT WHERE subject = 'Artificial Intelligence';
-    \nExample 5 - Identify students who have not attended any 'Operating Systems' classes in the current month.
-    SQL Query: SELECT name FROM students WHERE roll_no NOT IN (SELECT rollno FROM IT_attendance WHERE subject = 'Operating Systems' AND date BETWEEN '2024-01-01' AND '2024-01-31' AND attendance = 1);
+    UNIQUE (day, time_slot)),
+
+Explanation:
+This table stores the time table for TE AInDS students.
+id : used for indexing
+day : denotes the day for which record exists.
+time_slot : denotes the time slot of the lecture.
+subject : denotes the subject name to be conducted for that record.
+instructor : Teacher's Acronym who is responsible to conduct that lecture.
+room : Room allocated for the lecture. This value would be NULL.
+
+
+ALso here is information regarding which subject belongs to which class
+
+if department  == "IT":
+        
+        subjects_by_year = {
+            'SE': ['DBMS', 'SE', 'EM-3', 'CG', 'PA'],
+            'TE': ['DSBDA', 'CS', 'CC', 'CNS', 'WAD'],
+            'BE': ['SnE', 'DS', 'NLP', 'BT', 'BAI', 'SC']
+        }
+
+if department == "AInDS":
+        subjects_by_year = {
+            'SE': ['STAT', 'DSA', 'IOT', 'MIS', 'SE'],
+            'TE': ['DS', 'CS', 'ANN', 'SMA'],
+        }
+
+if department == "Electrical:
+subjects_by_year = {
+            'SE': ['PS-1', 'EM-1', 'NA', 'NMCP', 'FMA'],
+            'TE': ['PS-2', 'CADEM', 'CSE', 'EM', 'PSD'],
+            'BE': ['SGP', 'AEDC', 'SG', 'IL', 'PSD']
+        }
+
+
+
+
+\n\nFor example, 
+
+
+\nExample 1 - Retrieve the names of all students who have 'CC' as an elective and are in the 'IT' department. SQL Query: SELECT name FROM students WHERE elective1 = 'CC' AND Department = 'IT'; 
+    \nExample 2 - Find the total number of students who were present in the 'ML' class on '2023-09-15'.
+    SQL Query: SELECT COUNT(rollno) FROM AInDS_attendance WHERE subject = 'ML' AND date = '2023-09-15' AND attendance = TRUE;
+    \nExample 3 - List the schedule of CNS class for TE IT on Wednesdays.
+    SQL Query: SELECT day, time_slot, instructor, room FROM IT_TE_TT WHERE subject = 'CNS' AND day = 'Wednesday';
+    \nExample 4 - Get the details of all teachers who have taught 'DSBDA' in the 'IT' department.
+    SQL Query: SELECT DISTINCT instructor FROM IT_SE_TT WHERE subject = 'DSBDA' UNION SELECT DISTINCT instructor FROM IT_TE_TT WHERE subject = 'DSBDA' UNION SELECT DISTINCT instructor FROM IT_BE_TT WHERE subject = 'DSBDA';
+    \nExample 5 - Identify students who have not attended any 'SE' classes in the current month.
+    SQL Query: SELECT name FROM students WHERE Department = 'IT' AND roll_no NOT IN (SELECT rollno FROM IT_attendance WHERE subject = 'Operating Systems' AND date BETWEEN '2024-01-01' AND '2024-01-31' AND attendance = 1);
     \nExample 6 - Display the timetable for 'Third Year' students in the 'Electrical' department.
     SQL Query: SELECT * FROM Elec_TE_TT WHERE id IN (SELECT id FROM Elec_TE_TT GROUP BY day, time_slot HAVING COUNT(*) = 1);
     \n Note: under any circumstance do not write a query which might result in update, insert or delete operation.Also do not  write queries which might change the  database or manipulate the database only write queries which can display the infformation from the database
     if any such query is requested return this particular response "Can't do that!!"
     \nalso the sql code should not have ``` in beginning or end and sql word in output
-    
-
     """
 
 
@@ -236,20 +469,60 @@ prompt2 = [
 
     Also a note : the user doesn't know that that his reponse is being converted into query in order to display him any data. So keep it that way incase query is empty or something else.
     The SQL database has the name students and has the following tables:
-    \nCREATE TABLE students (
+        \nCREATE TABLE students (
     roll_no VARCHAR(10) PRIMARY KEY,
     name VARCHAR(50),
     password VARCHAR(50)
-    , elective1 VARCHAR(50), device_name TEXT, year VARCHAR, elective2 VARCHAR(50), Department VARCHAR) ,\n CREATE TABLE QR_key (
+    , elective1 VARCHAR(50), device_name TEXT, year VARCHAR, elective2 VARCHAR(50), Department VARCHAR) ,
+
+Explanation:
+Purpose of the table is to store information regarding all the students.
+roll_no : represent roll number of the  student
+name : Full name of the student in caps
+password : login password for student (never write query to display this)
+elective1 : 1st subject that student choose as an elective choice
+elective2 : 2nd subject that student choose as an elective choice
+device_name : Denotes the OS and device student is using to login.
+Department : Department name to which student belongs to, possible values IT, AInDS and Electrical
+
+
+
+
+\n CREATE TABLE QR_key (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     key_field VARCHAR(100)
-    , teacher_id INTEGER) ,\n CREATE TABLE Admins(
+    , teacher_id INTEGER) ,
+Explaination:
+Purpose of the table is to store the QR_key used for authentication of the QR code used by teacher, so that students can scan it and mark their attendance.
+id :  Used as an index to fetch the latest key.
+key_field : Actual Key value is stored here
+teacher_id : Teacher's ID used to recognize which teacher generated this QR code.
+
+
+
+\n CREATE TABLE Admins(
     Username VARCHAR(25) PRIMARY KEY,  
     Password VARCHAR(25),  
     Div VARCHAR(10),    
     Dept VARCHAR(50),  
     Class VARCHAR(10)        
-    , teacher_id INTEGER, Acronym VARCHAR),\n
+    , teacher_id INTEGER, Acronym VARCHAR),
+
+Explanation:
+Purpose of this table is to store information regarding teachers such as their name, password, Department and etc..
+
+Username : Denotes the first name of the teacher.
+Password : Denotes teacher's login password (never write query to expose this password)
+Div : Denotes the teacher teaches to which divison but it will always be NULL.
+Dept :  Denotes the department to which teacher belongs.
+Class : Denote the class to which teacher teaches and like divsion column this too would be NULL.
+teacher_id:  ID used to unqiuely identify the teacher.
+Acronym : Short form of teacher's full name for example Nikhil S Dhavase, his acronym NSD.
+
+
+
+
+\n
     CREATE TABLE "IT_attendance"(
     rollno VARCHAR(20),
     stdname VARCHAR(25),
@@ -257,14 +530,52 @@ prompt2 = [
     date DATE,
     time TIME,
     attendance BOOLEAN
-    , teacher_id INTEGER, year VARCHAR, QR_time TEXT, Flag Boolean, TOS TOS VARCHAR),\nCREATE TABLE "AInDS_attendance"(
+    , teacher_id INTEGER, year VARCHAR, QR_time TEXT, Flag Boolean, TOS TOS VARCHAR),
+Explanation:
+This table stores attendance records of all  students of IT department.
+
+rollno : Denotes roll number of the student.
+stdname : Denotes student name.
+subject : Denotes the subject for which the record exists.
+date : Denotes the date for which the record exists.
+time : Time Slot for which the lecture was conducted.
+attendance : Denotes whether or not the student was present. 0 means absent and 1  means present
+teacher_id :  helps identify which teacher took the lecture.
+year : Denotes the student belongs to which year SE, TE or BE (i.e SECOND, THIRD or FOURTH).
+QR_time: Time at which the QR was generated.
+Flag : whether the alloted teacher took the lecture or someone else took the lecture. 0 indicates someone else took the lecture and 1 indicates the allocated teacher took the lecture.
+TOS : Stands for time of scan and denotes the time at which student scaned the QR and marked his/her attendance.
+
+
+
+
+\nCREATE TABLE "AInDS_attendance"(
     rollno VARCHAR(20),
     stdname VARCHAR(25),
     subject VARCHAR(50),
     date DATE,
     time TIME,
     attendance BOOLEAN
-    , teacher_id INTEGER, year VARCHAR, QR_time TEXT, Flag Boolean, TOS TOS VARCHAR),\n
+    , teacher_id INTEGER, year VARCHAR, QR_time TEXT, Flag Boolean, TOS TOS VARCHAR),
+
+Explanation:
+This table stores attendance records of all  students of AInDS department.
+
+rollno : Denotes roll number of the student.
+stdname : Denotes student name.
+subject : Denotes the subject for which the record exists.
+date : Denotes the date for which the record exists.
+time : Time Slot for which the lecture was conducted.
+attendance : Denotes whether or not the student was present. 0 means absent and 1  means present
+teacher_id :  helps identify which teacher took the lecture.
+year : Denotes the student belongs to which year SE, TE or BE (i.e SECOND, THIRD or FOURTH).
+QR_time: Time at which the QR was generated.
+Flag : whether the alloted teacher took the lecture or someone else took the lecture. 0 indicates someone else took the lecture and 1 indicates the allocated teacher took the lecture.
+TOS : Stands for time of scan and denotes the time at which student scaned the QR and marked his/her attendance.
+
+
+
+\n
     CREATE TABLE "Elec_attendance"(
     rollno VARCHAR(20),
     stdname VARCHAR(25),
@@ -272,7 +583,25 @@ prompt2 = [
     date DATE,
     time TIME,
     attendance BOOLEAN
-    , teacher_id INTEGER, year VARCHAR, QR_time TEXT, Flag Boolean, TOS TOS VARCHAR),\n
+    , teacher_id INTEGER, year VARCHAR, QR_time TEXT, Flag Boolean, TOS TOS VARCHAR),
+
+Explanation:
+This table stores attendance records of all  students of Electrical department.
+
+rollno : Denotes roll number of the student.
+stdname : Denotes student name.
+subject : Denotes the subject for which the record exists.
+date : Denotes the date for which the record exists.
+time : Time Slot for which the lecture was conducted.
+attendance : Denotes whether or not the student was present. 0 means absent and 1  means present
+teacher_id :  helps identify which teacher took the lecture.
+year : Denotes the student belongs to which year SE, TE or BE (i.e SECOND, THIRD or FOURTH).
+QR_time: Time at which the QR was generated.
+Flag : whether the alloted teacher took the lecture or someone else took the lecture. 0 indicates someone else took the lecture and 1 indicates the allocated teacher took the lecture.
+TOS : Stands for time of scan and denotes the time at which student scaned the QR and marked his/her attendance.
+
+
+\n
     CREATE TABLE "IT_SE_TT" (
     id INTEGER PRIMARY KEY,
     day TEXT NOT NULL,
@@ -280,7 +609,20 @@ prompt2 = [
     subject TEXT,
     instructor TEXT,
     room TEXT,
-    UNIQUE (day, time_slot)),\n
+    UNIQUE (day, time_slot)),
+
+Explanation:
+This table stores the time table for SE IT students.
+id : used for indexing
+day : denotes the day for which record exists.
+time_slot : denotes the time slot of the lecture.
+subject : denotes the subject name to be conducted for that record.
+instructor : Teacher's Acronym who is responsible to conduct that lecture.
+room : Room allocated for the lecture. This value would be NULL.
+
+
+
+\n
     CREATE TABLE "IT_TE_TT" (
     id INTEGER PRIMARY KEY,
     day TEXT NOT NULL,
@@ -288,7 +630,22 @@ prompt2 = [
     subject TEXT,
     instructor TEXT,
     room TEXT,
-    UNIQUE (day, time_slot)),\n
+    UNIQUE (day, time_slot)),
+
+
+Explanation:
+This table stores the time table for TE IT students.
+id : used for indexing
+day : denotes the day for which record exists.
+time_slot : denotes the time slot of the lecture.
+subject : denotes the subject name to be conducted for that record.
+instructor : Teacher's Acronym who is responsible to conduct that lecture.
+room : Room allocated for the lecture. This value would be NULL.
+
+
+
+
+\n
     CREATE TABLE "IT_BE_TT" (
     id INTEGER PRIMARY KEY,
     day TEXT NOT NULL,
@@ -296,7 +653,21 @@ prompt2 = [
     subject TEXT,
     instructor TEXT,
     room TEXT,
-    UNIQUE (day, time_slot)),\n
+    UNIQUE (day, time_slot)),
+
+
+Explanation:
+This table stores the time table for BE IT students.
+id : used for indexing
+day : denotes the day for which record exists.
+time_slot : denotes the time slot of the lecture.
+subject : denotes the subject name to be conducted for that record.
+instructor : Teacher's Acronym who is responsible to conduct that lecture.
+room : Room allocated for the lecture. This value would be NULL.
+
+
+
+\n
     CREATE TABLE "Elec_SE_TT" (
     id INTEGER PRIMARY KEY,
     day TEXT NOT NULL,
@@ -304,7 +675,21 @@ prompt2 = [
     subject TEXT,
     instructor TEXT,
     room TEXT,
-    UNIQUE (day, time_slot)),\n
+    UNIQUE (day, time_slot)),
+
+
+Explanation:
+This table stores the time table for SE Electrical students.
+id : used for indexing
+day : denotes the day for which record exists.
+time_slot : denotes the time slot of the lecture.
+subject : denotes the subject name to be conducted for that record.
+instructor : Teacher's Acronym who is responsible to conduct that lecture.
+room : Room allocated for the lecture. This value would be NULL.
+
+
+
+\n
     CREATE TABLE "Elec_TE_TT" (
     id INTEGER PRIMARY KEY,
     day TEXT NOT NULL,
@@ -312,7 +697,20 @@ prompt2 = [
     subject TEXT,
     instructor TEXT,
     room TEXT,
-    UNIQUE (day, time_slot)),\n
+    UNIQUE (day, time_slot)),
+
+Explanation:
+This table stores the time table for TE Electrical students.
+id : used for indexing
+day : denotes the day for which record exists.
+time_slot : denotes the time slot of the lecture.
+subject : denotes the subject name to be conducted for that record.
+instructor : Teacher's Acronym who is responsible to conduct that lecture.
+room : Room allocated for the lecture. This value would be NULL.
+
+
+
+\n
     CREATE TABLE "Elec_BE_TT" (
     id INTEGER PRIMARY KEY,
     day TEXT NOT NULL,
@@ -320,7 +718,20 @@ prompt2 = [
     subject TEXT,
     instructor TEXT,
     room TEXT,
-    UNIQUE (day, time_slot)),\n
+    UNIQUE (day, time_slot)),
+
+Explanation:
+This table stores the time table for BE Electrical students.
+id : used for indexing
+day : denotes the day for which record exists.
+time_slot : denotes the time slot of the lecture.
+subject : denotes the subject name to be conducted for that record.
+instructor : Teacher's Acronym who is responsible to conduct that lecture.
+room : Room allocated for the lecture. This value would be NULL.
+
+
+
+\n
     CREATE TABLE "AInDS_SE_TT" (
     id INTEGER PRIMARY KEY,
     day TEXT NOT NULL,
@@ -328,7 +739,21 @@ prompt2 = [
     subject TEXT,
     instructor TEXT,
     room TEXT,
-    UNIQUE (day, time_slot)),\n
+    UNIQUE (day, time_slot)),
+
+Explanation:
+This table stores the time table for SE AInDS students.
+id : used for indexing
+day : denotes the day for which record exists.
+time_slot : denotes the time slot of the lecture.
+subject : denotes the subject name to be conducted for that record.
+instructor : Teacher's Acronym who is responsible to conduct that lecture.
+room : Room allocated for the lecture. This value would be NULL.
+
+
+
+
+\n
     CREATE TABLE "AInDS_TE_TT" (
     id INTEGER PRIMARY KEY,
     day TEXT NOT NULL,
@@ -336,12 +761,47 @@ prompt2 = [
     subject TEXT,
     instructor TEXT,
     room TEXT,
-    UNIQUE (day, time_slot))
+    UNIQUE (day, time_slot)),
+
+Explanation:
+This table stores the time table for TE AInDS students.
+id : used for indexing
+day : denotes the day for which record exists.
+time_slot : denotes the time slot of the lecture.
+subject : denotes the subject name to be conducted for that record.
+instructor : Teacher's Acronym who is responsible to conduct that lecture.
+room : Room allocated for the lecture. This value would be NULL.
+
+
+ALso here is information regarding which subject belongs to which class
+
+if department  == "IT":
+        
+        subjects_by_year = {
+            'SE': ['DBMS', 'SE', 'EM-3', 'CG', 'PA'],
+            'TE': ['DSBDA', 'CS', 'CC', 'CNS', 'WAD'],
+            'BE': ['SnE', 'DS', 'NLP', 'BT', 'BAI', 'SC']
+        }
+
+if department == "AInDS":
+        subjects_by_year = {
+            'SE': ['STAT', 'DSA', 'IOT', 'MIS', 'SE'],
+            'TE': ['DS', 'CS', 'ANN', 'SMA'],
+        }
+
+if department == "Electrical:
+subjects_by_year = {
+            'SE': ['PS-1', 'EM-1', 'NA', 'NMCP', 'FMA'],
+            'TE': ['PS-2', 'CADEM', 'CSE', 'EM', 'PSD'],
+            'BE': ['SGP', 'AEDC', 'SG', 'IL', 'PSD']
+        }
+
+
     
     For example:
     - Input: "User query: List all students with Android devices. SQL result: ['John Doe; Android 10; Pixel 4']", 
       Response: "John Doe has an Android device, specifically a Pixel 4 running Android 10."
-    - Input: "User query: Show attendance for the Machine Learning class on 2023-09-15. SQL result: ['15 students were present']", 
+    - Input: "User query: Show attendance for the Machine Learning class on 2023-09-15. SQL result: ['15 ']", 
       Response: "On 2023-09-15, there were 15 students present in the Machine Learning class."
       
     """
