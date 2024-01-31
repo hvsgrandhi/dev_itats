@@ -12,6 +12,8 @@ from io import BytesIO
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 import google.generativeai as genai
+import logging
+from logging.handlers import RotatingFileHandler
 
 
 app = Flask(__name__)
@@ -21,6 +23,10 @@ app.secret_key = '6NWMu7ewCqm7GX6tbG0hOJmU8QNWZ2A5'
 GOOGLE_API_KEY= "AIzaSyA6Ga8yGLeMc7pCali3x8Hj3Itjk6ihAmQ"
 genai.configure(api_key=GOOGLE_API_KEY)
 
+logging.basicConfig(level=logging.DEBUG)
+handler = RotatingFileHandler('app.log', maxBytes=10000, backupCount=1)
+handler.setLevel(logging.DEBUG)
+app.logger.addHandler(handler)
 
 
 # Initialize attendance_status
