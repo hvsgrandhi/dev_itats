@@ -1483,27 +1483,39 @@ def update_attendance():
     subject = data.get('subject')
     date = data.get('date')
     time = data.get('time')
-    attendance = int(data.get('attendance'))  # Convert attendance to an integer
+    # No need to convert attendance as we're setting it directly to 1
     current_time = datetime.now().strftime('%I:%M:%S %p')
     department = session.get('admin_dept')
 
+    # Check the current attendance status before updating
     if department == "IT":
-        db = get_db()
-        db.execute('UPDATE IT_attendance SET attendance = ?, TOS = ? WHERE rollno = ? AND subject = ? AND date = ? AND time = ?',
-                (1 - attendance, current_time, rollno, subject, date, time))
-        db.commit()
+        current_attendance = query_db('SELECT attendance FROM IT_attendance WHERE rollno = ? AND subject = ? AND date = ? AND time = ?', 
+                                      (rollno, subject, date, time), one=True)
     elif department == "AInDS":
-        db = get_db()
-        db.execute('UPDATE AInDS_attendance SET attendance = ?, TOS = ? WHERE rollno = ? AND subject = ? AND date = ? AND time = ?',
-                (1 - attendance, current_time, rollno, subject, date, time))
-        db.commit()
-    else:
-        db = get_db()
-        db.execute('UPDATE Elec_attendance SET attendance = ?, TOS = ? WHERE rollno = ? AND subject = ? AND date = ? AND time = ?',
-                (1 - attendance, current_time, rollno, subject, date, time))
-        db.commit()
+        current_attendance = query_db('SELECT attendance FROM AInDS_attendance WHERE rollno = ? AND subject = ? AND date = ? AND time = ?', 
+                                      (rollno, subject, date, time), one=True)
+    else:  # Assuming "Electrical" or other departments
+        current_attendance = query_db('SELECT attendance FROM Elec_attendance WHERE rollno = ? AND subject = ? AND date = ? AND time = ?', 
+                                      (rollno, subject, date, time), one=True)
 
-    return jsonify({'message': 'Attendance updated successfully'})  
+    # Proceed to update only if the current attendance is 0
+    if current_attendance and current_attendance['attendance'] == 0:
+        db = get_db()
+        if department == "IT":
+            db.execute('UPDATE IT_attendance SET attendance = 1, TOS = ? WHERE rollno = ? AND subject = ? AND date = ? AND time = ?', 
+                       (current_time, rollno, subject, date, time))
+        elif department == "AInDS":
+            db.execute('UPDATE AInDS_attendance SET attendance = 1, TOS = ? WHERE rollno = ? AND subject = ? AND date = ? AND time = ?', 
+                       (current_time, rollno, subject, date, time))
+        else:  # Assuming "Electrical" or other departments
+            db.execute('UPDATE Elec_attendance SET attendance = 1, TOS = ? WHERE rollno = ? AND subject = ? AND date = ? AND time = ?', 
+                       (current_time, rollno, subject, date, time))
+        db.commit()
+        return jsonify({'message': 'Attendance updated successfully to present'})
+    else:
+        # If attendance is already marked as 1, do not update
+        return jsonify({'message': 'Attendance is already marked as present or record not found'})
+
 
 
 @app.route('/attendance_summary', methods=['POST'])
