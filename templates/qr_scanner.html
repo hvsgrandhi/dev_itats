@@ -128,41 +128,44 @@
     // Function to initialize the QR scanner
     function initializeQRScanner() {
       console.log('Initializing QR scanner...');
-
-      // Access the rear camera
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } } })
-        .then(function (stream) {
-          preview.srcObject = stream;
-          preview.play();
-
-          // Create an Instascan scanner with the video stream
-          scanner = new Instascan.Scanner({
-            video: preview,
-            mirror: false, // Set mirror to false to use the rear camera
-          });
-
-          scanner.addListener('scan', function (content) {
-            // Handle the detected QR code result (send it to the server)
+    
+      // Check for camera access support
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert("Camera access is not supported by your browser.");
+        return;
+      }
+    
+      // Request camera access
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+        .then(function(stream) {
+          var videoElement = document.getElementById('preview');
+          videoElement.srcObject = stream;
+          videoElement.play();
+    
+          // Scanner initialization here
+          scanner = new Instascan.Scanner({ video: videoElement, mirror: false });
+          scanner.addListener('scan', function(content) {
             sendQRCodeToServer(content);
           });
-
-          Instascan.Camera.getCameras().then(function (cameras) {
+    
+          // Start scanner with the first available camera
+          Instascan.Camera.getCameras().then(function(cameras) {
             if (cameras.length > 0) {
-              // Use the rear camera (cameras[0])
-              scanner.start(cameras[0]);
+              scanner.start(cameras[0]).catch(function(e) {
+                console.error('Error starting scanner:', e);
+              });
             } else {
               console.error('No cameras found.');
+              alert('No cameras found. Ensure your camera is enabled and try again.');
             }
-          }).catch(function (e) {
-            console.error(e);
           });
         })
-        .catch(function (error) {
-          console.error('Error accessing the camera:', error);
+        .catch(function(err) {
+          console.error('Error accessing the camera:', err);
+          alert('Error accessing the camera. Please ensure camera access is allowed and try again.');
         });
-
-      getUserProfile();  // Load user profile
     }
+    
 
     // Function to send the detected QR code to the server
     function sendQRCodeToServer(qrCode) {
