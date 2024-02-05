@@ -958,7 +958,7 @@ def generate_qr_code_from_input(subject_name, time_slot, date, year, instructor)
 
 
 
-    if department == 'AInDS':
+    elif department == 'AInDS':
         if year == 'SE':
             students = query_db('SELECT roll_no, name FROM students WHERE year =? and Department = ?', (year,department,))
             db = get_db()
@@ -969,16 +969,6 @@ def generate_qr_code_from_input(subject_name, time_slot, date, year, instructor)
                 db.commit()
 
         elif year == 'TE':
-            if subject_name == "CS" or subject_name == "CC":
-                students = query_db('SELECT roll_no, name FROM students WHERE elective1 = ?', (subject_name,))
-                if students is not None:
-                    db = get_db()
-                    for student in students:
-                        db.execute('INSERT INTO AInDS_attendance (rollno, stdname, subject, date, time, attendance, teacher_id, year, QR_time, Flag) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                                (student['roll_no'], student['name'], subject_name, date, time_slot, 0, teacher_id, year, current_time, Flag))
-                    db.commit()
-
-            else:
                 students = query_db('SELECT roll_no, name FROM students where year = ? AND Department = ?', (year, department,))
                 db = get_db()
                 for student in students:
@@ -986,24 +976,6 @@ def generate_qr_code_from_input(subject_name, time_slot, date, year, instructor)
                             (student['roll_no'], student['name'], subject_name, date, time_slot, 0, session['teacher_id'], year, current_time, Flag))
 
                 db.commit()
-
-        else:
-            if subject_name == "NLP" or subject_name == "SC" or subject_name == "BAI" or subject_name == "BT":
-                students = query_db('SELECT roll_no, name FROM students where elective1 =? OR elective2 = ?', (subject_name, subject_name,))
-                if students is not None:
-                    db = get_db()
-                    for student in students:
-                        db.execute('INSERT INTO AInDS_attendance (rollno, stdname, subject, date, time, attendance, teacher_id, year, QR_time, Flag) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                            (student['roll_no'], student['name'], subject_name, date, time_slot, 0, session['teacher_id'], year, current_time, Flag))
-                    db.commit()
-            else:
-                students = query_db('SELECT roll_no, name FROM students where year = ? AND Department = ?', (year, department,))
-                db = get_db()
-                for student in students:
-                    db.execute('INSERT INTO AInDS_attendance (rollno, stdname, subject, date, time, attendance, teacher_id, year, QR_time, Flag) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,, ?)',
-                            (student['roll_no'], student['name'], subject_name, date, time_slot, 0, session['teacher_id'], year, current_time, Flag))
-                db.commit()
-
 
 
     else:
@@ -1218,7 +1190,7 @@ def login():
             # Create a session for the logged-in student
             session['roll_no'] = user['roll_no']
             session['name'] = user['name']
-            # session['department'] = user['department']
+            session['department'] = user['Department']
 
 
             # Redirect to the QR scanner page after successful login
@@ -1375,8 +1347,8 @@ def qr_scanner():
 def process_qr_code():
     data = request.get_json()
     qr_code = data.get('qr_code')
-    department = session.get('department', 'unknown')
-
+    department = session.get('department')
+    
     # Process the QR code and extract information
     qr_parts = qr_code.split('_')
 
@@ -1387,8 +1359,9 @@ def process_qr_code():
         last_generated_key = query_db('SELECT key_field FROM QR_key WHERE teacher_id = ? ORDER BY id DESC LIMIT 1', (teacher_id,), one=True)
 
         if last_generated_key and key == last_generated_key['key_field']:
-
+            
             if department == "IT":
+               
                 current_time = datetime.now().strftime('%I:%M:%S %p')
 
                 # Key is valid, update attendance in IT_attendance for the logged-in student
@@ -1440,6 +1413,7 @@ def teacher_dashboard():
         time_slot = request.form['time_slot']
         date = request.form['date']
         year = request.form['year']
+
         if department == "IT":
             
         # Run a query to fetch relevant records based on selected criteria
