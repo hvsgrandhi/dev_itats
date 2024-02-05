@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QR Scanner</title>
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
-  <script src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     body {
@@ -127,45 +127,31 @@
 
     // Function to initialize the QR scanner
     function initializeQRScanner() {
-      console.log('Initializing QR scanner...');
-    
-      // Check for camera access support
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        alert("Camera access is not supported by your browser.");
-        return;
-      }
-    
-      // Request camera access
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-        .then(function(stream) {
-          var videoElement = document.getElementById('preview');
-          videoElement.srcObject = stream;
-          videoElement.play();
-    
-          // Scanner initialization here
-          scanner = new Instascan.Scanner({ video: videoElement, mirror: false });
-          scanner.addListener('scan', function(content) {
-            sendQRCodeToServer(content);
-          });
-    
-          // Start scanner with the first available camera
-          Instascan.Camera.getCameras().then(function(cameras) {
-            if (cameras.length > 0) {
-              scanner.start(cameras[0]).catch(function(e) {
-                console.error('Error starting scanner:', e);
-              });
-            } else {
-              console.error('No cameras found.');
-              alert('No cameras found. Ensure your camera is enabled and try again.');
+      const html5QrCode = new Html5Qrcode("preview");
+      const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+      Html5Qrcode.getCameras().then(cameras => {
+        if (cameras.length > 0) {
+          html5QrCode.start(
+            cameras[0].id,
+            config,
+            qrCodeMessage => {
+              sendQRCodeToServer(qrCodeMessage);
+            },
+            errorMessage => {
+              // handle scan error
             }
+          ).catch(err => {
+            console.error(`Unable to start QR scanner: ${err}`);
           });
-        })
-        .catch(function(err) {
-          console.error('Error accessing the camera:', err);
-          alert('Error accessing the camera. Please ensure camera access is allowed and try again.');
-        });
+        } else {
+          console.error("No cameras found.");
+          alert("No cameras found. Ensure your camera is enabled and try again.");
+        }
+      }).catch(err => {
+        console.error(`Error getting cameras: ${err}`);
+      });
     }
-    
 
     // Function to send the detected QR code to the server
     function sendQRCodeToServer(qrCode) {
@@ -246,7 +232,6 @@
 
     // Call the initialization function
     initializeQRScanner();
-    console.log('User IP:', "{{ session.get('user_ip') }}");
   </script>
 
 </body>
