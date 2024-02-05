@@ -1183,10 +1183,12 @@ def login():
                     print(device_name[0])
                     return render_template('login.html', error='Device mismatch. Please log in from the registered device.')
             else:
-                print(device_name)
-                db = get_db()
-                db.execute('UPDATE students SET device_name = ? WHERE roll_no = ?', (device_name, roll_no))
-                db.commit()
+                if device_name == "Linux; Android 10; K":
+                     return render_template('login.html', error='Please Login using Opera Browser Only and Not any other browser')
+                else:
+                    db = get_db()
+                    db.execute('UPDATE students SET device_name = ? WHERE roll_no = ?', (device_name, roll_no))
+                    db.commit()
                 
 
             session['device_name'] = device_name
