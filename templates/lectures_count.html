@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lecture Counts by Subject</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #ffffff; /* More white background */
+            color: #4a4a4a;
+        }
+        h1 {
+            color: #0a4870; /* Darker shade for the header */
+            text-align: center;
+        }
+        table {
+            width: 80%; /* Reduced width */
+            margin-top: 20px;
+            margin-left: auto; /* Center table */
+            margin-right: auto; /* Center table */
+            border-collapse: collapse;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1); /* Soft shadow around table */
+        }
+        th, td {
+            padding: 12px 15px; /* Adjusted padding for better spacing */
+            border: 1px solid #ddd; /* Lighter border color */
+            text-align: center;
+        }
+        th {
+            background-color: #007bff; /* Keep the header color */
+            color: white;
+            letter-spacing: 0.05em; /* Slight letter spacing for headers */
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9; /* Lighter shade for even rows */
+        }
+        tr:hover {
+            background-color: #eef4f7; /* Lighter hover effect */
+        }
+        @media screen and (max-width: 600px) {
+            table {
+                width: 100%; /* Full width on smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Lecture Counts by Subject</h1>
+    <table id="lectureCountsTable">
+        <thead>
+            <tr>
+                <th>Subject</th>
+                <th>Planned Lectures</th>
+                <th>Conducted Lectures</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Lecture counts will be inserted here by the script below -->
+        </tbody>
+    </table>
+
+    <script>
+        // Function to fetch lecture counts and update the table
+        function fetchLectureCounts() {
+            fetch('/lecture_count_by_subject')
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById('lectureCountsTable').getElementsByTagName('tbody')[0];
+                    tableBody.innerHTML = ''; // Clear existing table rows
+                    data.forEach(row => {
+                        const tr = document.createElement('tr');
+                        const subjectCell = document.createElement('td');
+                        subjectCell.textContent = row.subject;
+                        const plannedCountCell = document.createElement('td');
+                        plannedCountCell.textContent = row.planned_lectures;
+                        const conductedCountCell = document.createElement('td');
+                        conductedCountCell.textContent = row.conducted_lectures;
+                        tr.appendChild(subjectCell);
+                        tr.appendChild(plannedCountCell);
+                        tr.appendChild(conductedCountCell);
+                        tableBody.appendChild(tr);
+                    });
+                })
+                .catch(error => console.error('Error fetching lecture counts:', error));
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchLectureCounts);
+    </script>
+</body>
+</html>

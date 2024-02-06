@@ -7,6 +7,8 @@
     <title>Admin Dashboard</title>
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
 
+
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -287,9 +289,21 @@
                 <div class="info-item">
                     <strong>QR Time Generation:</strong> {{ records[0]['QR_time'] }}
                 </div>
+                <div class="info-item">
+                    <strong>Subject:</strong> {{ records[0]['subject'] }}
+                </div>
+                <div class="info-item">
+                    <strong>Subject Time Slot:</strong> {{ records[0]['time'] }}
+                </div>
+                <div class="info-item">
+                    <strong>Date:</strong> {{ records[0]['date'] }}
+                </div>
             {% else %}
                 <p>No records found for the specified criteria.</p>
             {% endif %}
+        </div>
+        <div class="text-center mt-3">
+            <button class="btn btn-primary" onclick="downloadAttendance()">Download as Excel</button>
         </div>
 
         <div>
@@ -303,10 +317,7 @@
                     <tr>
                         <th>Roll No</th>
                         <th>Student Name</th>
-                        <th>Subject</th>
-                        <th>Date</th>
-                        <th>Time</th>
-                        <th>Time of attendance Marked<th
+                        <th>Time of attendance Marked</th>
                         <th>Attendance</th>
                         <th>Action</th> <!-- Added header for the action column -->
                     </tr>
@@ -316,15 +327,12 @@
                     <tr>
                         <td>{{ record['rollno'] }}</td>
                         <td>{{ record['stdname'] }}</td>
-                        <td>{{ record['subject'] }}</td>
-                        <td>{{ record['date'] }}</td>
-                        <td>{{ record['time'] }}</td>
                         <td>{{ record['TOS'] }}</td>
                         <td>{{ record['attendance'] }}</td>
                         <td>
                             <!-- Check the attendance value and adjust button text and disabled state accordingly -->
                             <button class="btn btn-sm {{ 'btn-warning' if record['attendance'] == 0 else 'btn-secondary' }} toggle-button"
-                                    onclick="updateAttendance('{{ record['rollno'] }}', '{{ record['subject'] }}', '{{ record['date'] }}', '{{ record['time'] }}', '{{ record['attendance'] }}')"
+                                    onclick="updateAttendance('{{ record['rollno'] }}', '{{ records[0]['subject'] }}', '{{ records[0]['date'] }}', '{{ records[0]['time'] }}', '{{ record['attendance'] }}')"
                                     {{ 'disabled' if record['attendance'] == 1 }}>
                                 {{ 'Toggle Attendance' if record['attendance'] == 0 else 'Attendance Marked' }}
                             </button>
@@ -336,9 +344,7 @@
             </table>
             {% endif %}
         </div>
-        <div class="text-center mt-3">
-            <button class="btn btn-primary" onclick="downloadAttendance()">Download Attendance</button>
-        </div>
+        <!-- <button class="btn btn-danger" onclick="downloadAttendancePDF()">Download as PDF</button> -->
     </div>
     </div>
 </body>
@@ -462,7 +468,7 @@
             var rollCell = row.querySelector('td:first-child');
             if (rollCell && rollCell.textContent === rollno) {
                 // Update the attendance cell
-                var attendanceCell = row.querySelector('td:nth-child(7)');
+                var attendanceCell = row.querySelector('td:nth-child(4)');
                 attendanceCell.textContent = newAttendance === '1' ? '1' : '0';
     
                 // Update the button text and state
@@ -520,31 +526,46 @@
         console.log('Initializing Admin Profile...');
         getAdminProfile();
     }
+    
     function downloadAttendance() {
         // Get the table data
         var table = document.querySelector('.narrow-table');
         var rows = Array.from(table.querySelectorAll('tr'));
-
+    
         // Create a CSV content
         var csvContent = '';
-
-        // Iterate through rows and columns
-        rows.forEach(function (row, rowIndex) {
+    
+        // Concatenate the info from .info-items into a single row
+        var infoItems = document.querySelectorAll('.info-item');
+        var infoContent = Array.from(infoItems).map(function(item, index) {
+            // For the first item, prepend the label
+            if (index === 0) {
+                return "Did the allocated teacher take the lecture: " + item.querySelector('span').textContent;
+            } else {
+                // For other items, include only the content
+                return item.textContent.trim();
+            }
+        }).join(','); // Join with comma or semicolon based on your CSV format
+    
+        csvContent += infoContent + '\n\n'; // Append the combined info as one row
+    
+        // Iterate through rows and columns for the rest of the table data
+        rows.forEach(function(row, rowIndex) {
             var columns = Array.from(row.querySelectorAll('td, th'));
-
+    
             // Skip the action column (last column)
             if (rowIndex > 0) {
                 columns.pop();
             }
-
-            var rowArray = columns.map(function (column) {
+    
+            var rowArray = columns.map(function(column) {
                 // Format date cells to prevent ######### issue
-                return (column.cellIndex === 3) ? formatExcelDate(column.innerText) : column.innerText;
+                return column.innerText;
             });
-
+    
             csvContent += rowArray.join(',') + '\n';
         });
-
+    
         // Create a blob and initiate download
         var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         var link = document.createElement("a");
@@ -553,14 +574,7 @@
         document.body.appendChild(link);
         link.click();
     }
-
-    // Function to format date cells for CSV
-    function formatExcelDate(dateString) {
-        var date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
-    }
-
-
+    
     // Call the initialization function
     initializeAdminProfile();
 </script>

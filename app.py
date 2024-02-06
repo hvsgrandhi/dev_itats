@@ -1631,6 +1631,77 @@ def attendance_summary():
     return jsonify(subject_counts)
 
 
+@app.route('/lectures_count')
+def lectures_count():
+    return render_template('lectures_count.html')
+
+@app.route('/lecture_count_by_subject')
+def lecture_count_by_subject():
+    try:
+        department = session.get('admin_dept','Unknown')
+        if department == 'IT':
+            elective_to_actual = {
+                'Elective 2': ['CC', 'CS'],
+                'Elective 5': ['NLP', 'SC'],
+                'Elective 6': ['BT', 'BAI']
+            }
+
+            subjects_to_exclude = [
+                "ACM/ITSA/IT tech Club",
+                "Additional Activites",
+                "Additional Activities",
+                "Audit Course",
+                "Expert Session or Add on course",
+                "Honors Course",
+                "InternShip Review",
+                "Long Break",
+                "Practical",
+                "Project Work",
+                "Short Break",
+                "PBL",
+                None
+            ]
+
+            planned_query = """
+            SELECT subject, COUNT(*) AS planned_lecture_count
+            FROM (
+                SELECT subject FROM IT_SE_TT
+                UNION ALL
+                SELECT subject FROM IT_TE_TT
+                UNION ALL
+                SELECT subject FROM IT_BE_TT
+            ) GROUP BY subject;
+            """
+            planned_lectures = query_db(planned_query) or []
+
+            conducted_query = """
+            SELECT subject, COUNT(DISTINCT date || ' ' || time) AS conducted_lectures_count
+            FROM IT_attendance
+            GROUP BY subject;
+            """
+            conducted_lectures = query_db(conducted_query) or []
+
+            combined_results = []
+            for planned_lecture in planned_lectures:
+                subject = planned_lecture['subject']
+                
+                if subject not in subjects_to_exclude:
+                    planned_count = planned_lecture['planned_lecture_count']
+                    if subject in elective_to_actual:
+                        for actual_subject in elective_to_actual[subject]:
+                            conducted_count = sum(item['conducted_lectures_count'] for item in conducted_lectures if item['subject'] == actual_subject)
+                            combined_results.append({'subject': actual_subject, 'planned_lectures': planned_count, 'conducted_lectures': conducted_count})
+                    else:
+                        conducted_count = next((item['conducted_lectures_count'] for item in conducted_lectures if item['subject'] == subject), 0)
+                        combined_results.append({'subject': subject, 'planned_lectures': planned_count, 'conducted_lectures': conducted_count})
+
+            return jsonify(combined_results)
+    except Exception as e:
+        app.logger.error(f"Error fetching lecture counts: {str(e)}")
+        return jsonify({"error": "An error occurred while processing your request"}), 500
+
+
+
 
 
 @app.route('/analytics', methods=['GET', 'POST'])
