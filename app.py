@@ -1229,6 +1229,7 @@ def admin_login():
             session['admin_class'] = admin['Class']
             session['teacher_id'] = admin['teacher_id']
             session['admin_level'] = admin['Admin_level']
+            session['check'] = None
 
             # Redirect to the admin options page after successful login
             return redirect(url_for('admin_options'))
@@ -1483,7 +1484,7 @@ def teacher_dashboard():
         date = request.form['date']
         year = request.form['year']
         print(department)
-        session.pop('check')
+        session['check'] = None
         if department == "IT":
             
         # Run a query to fetch relevant records based on selected criteria
@@ -1571,7 +1572,22 @@ def attendance_summary():
     data = request.form
     date = data.get('date')
     year = data.get('year')
-    department = session.get('admin_dept')
+
+    check = session.get('check', None)
+
+    admin_level = int(session.get('admin_level'))
+
+    if check is None:
+        if admin_level == 1 or admin_level == 0:
+            return render_template("all_std.html")
+        
+    if admin_level == 1 or admin_level == 0:
+        department = check
+        session.pop('check')
+    else:
+        department = session.get('admin_dept')
+
+
 
     # Initialize subject_counts dictionary to store attendance summary and time slots
 
@@ -1854,7 +1870,37 @@ def attendance_summary_by_student():
 
 @app.route('/studentcnt')
 def studentcnt():
+    if 'admin_username' not in session:
+        # Redirect to the admin login page if not logged in
+        return redirect(url_for('admin_login'))
+    
     return render_template('studentcnt.html')
+
+@app.route('/all_std', methods=['POST', 'GET'])
+def all_std():
+    if 'admin_username' not in session:
+        # Redirect to login or any other appropriate route
+            return redirect(url_for('admin_login'))
+    
+    if request.method == 'POST':
+        department = request.form['department']
+        session['check'] = department
+
+        if department is not None:
+        
+            if department == 'IT':
+                return redirect(url_for('studentcnt'))
+            
+            elif department == 'Electrical':
+                return redirect(url_for('studentcnt'))
+
+            else:
+                return redirect(url_for('studentcnt'))
+
+    return render_template('all_std.html')
+
+        
+
 
 
 
