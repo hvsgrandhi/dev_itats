@@ -1125,7 +1125,11 @@ def input():
     if 'admin_username' not in session:
         # Redirect to login or any other appropriate route
         return redirect(url_for('admin_login'))
-
+    
+    admin_level = int(session.get('admin_level'))
+    if admin_level == 1:
+        return redirect(url_for('Check_route'))
+    
     # Initialize 'department' with a default value or a value from session
     department = session.get('admin_dept', 'Unknown')
 
@@ -1224,6 +1228,7 @@ def admin_login():
             session['admin_dept'] = admin['Dept']
             session['admin_class'] = admin['Class']
             session['teacher_id'] = admin['teacher_id']
+            session['admin_level'] = admin['Admin_level']
 
             # Redirect to the admin options page after successful login
             return redirect(url_for('admin_options'))
@@ -1244,8 +1249,9 @@ def admin_options():
         return redirect(url_for('admin_login'))
     
     name = session.get('admin_username')
+    admin_level = int(session.get('admin_level'))
 
-    return render_template('admin_options.html', name = name)
+    return render_template('admin_options.html', name = name, admin_level = admin_level)
 
 
 
@@ -1319,14 +1325,60 @@ def ainds_te_tt():
         return render_template('ainds_te_tt.html',timetable_data = timetable_data)
 
 
+@app.route('/all_tt', methods=['GET', 'POST'])
+def all_tt():
+    if 'admin_username' not in session:
+        # Redirect to login or any other appropriate route
+            return redirect(url_for('admin_login'))
+    
+    department = request.form['department']
+     
+    if department is not None:
+    
+        if department == 'IT':
+            return redirect(url_for('it_se_tt'))
+        
+        elif department == 'Electrical':
+            return redirect(url_for('elect_se_tt'))
+
+        else:
+            return redirect(url_for('ainds_se_tt'))
+
+    return render_template('all_tt.html')
+
+
+@app.route('/all_dep', methods = ['GET', 'POST'])
+def all_dep():
+    if 'admin_username' not in session:
+        # Redirect to login or any other appropriate route
+            return redirect(url_for('admin_login'))
+    
+    department = request.form['department']
+    session['check'] = department
+
+    if department is not None:
+    
+        if department == 'IT':
+            return redirect(url_for('teacher_dashboard'))
+        
+        elif department == 'Electrical':
+            return redirect(url_for('teacher_dashboard'))
+
+        else:
+            return redirect(url_for('teacher_dashboard'))
+        
+    return render_template('all_dep.html')
+
 
 @app.route('/Check_route')
 def Check_route():
 
     department = session.get('admin_dept')
-    print(department)
+   
 
-    if department == 'IT':
+    if department == 'Admin':
+        return render_template('all_tt.html')
+    elif department == 'IT':
         return redirect(url_for('it_se_tt'))
     
     elif department == 'Electrical':
@@ -1409,17 +1461,29 @@ def teacher_dashboard():
     if 'admin_username' not in session:
         # Redirect to the admin login page if not logged in
         return redirect(url_for('admin_login'))
+    
+    admin_level = int(session.get('admin_level'))
+    check = session.get('check',None)
 
+    if check is None:
+        if admin_level == 1 or admin_level == 0 :
+            return render_template('all_dep.html')
+    
     no_records_found = False
-    department = session.get('admin_dept')
-
+    if admin_level == 1 or admin_level == 0:
+        department = check
+    else:
+        department = session.get('admin_dept')
+    
+    print(department)
     if request.method == 'POST':
         # If it's a POST request, retrieve form data
         subject_name = request.form['subject_name']
         time_slot = request.form['time_slot']
         date = request.form['date']
         year = request.form['year']
-
+        print(department)
+        session.pop('check')
         if department == "IT":
             
         # Run a query to fetch relevant records based on selected criteria

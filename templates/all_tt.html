@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Department Selection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e0f2f1; /* Sky Blue Background Color */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #ffffff; /* White Container Background */
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff; /* Sky Blue Button Color */
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3; /* Darker Sky Blue on Hover */
+        }
+        #home {
+            background-color: red;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 20px;
+            position: absolute;
+            top: 0;
+            left: 10px;
+            padding : 10px;
+            border-radius: 5px ;
+            font-size: 15px;
+            width: 75px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" >
+        <button class="btn btn-danger" id="home" onclick="navigateToHome()">Home</button>
+        <h1>Department Selection</h1>
+        <form method="post" action="{{ url_for('all_tt') }}">
+            <label for="department">Select a Department:</label>
+            <select id="department" name="department">
+                <option value="IT">IT</option>
+                <option value="Electrical">Electrical</option>
+                <option value="AInDS">AInDS</option>
+            </select>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+    <script>
+        function navigateToHome() {
+            // Replace with the actual URL you want to navigate to
+            window.location.href = "/admin_options";
+        }
+    </script>
+</body>
+</html>

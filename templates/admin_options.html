@@ -195,12 +195,19 @@
     </div>
     <div id="right-side">
       <div id="options">
+        {%if admin_level >= 2 %}
         <button id="generateQR" onclick = redirect()>Generate QR Code</button>
+        {%else%}
+        <button id="generateQR" onclick = redirect()>View Timetable</button>
+
+        {%endif%}
         <a href="{{ url_for('teacher_dashboard') }}"><button id="teacherDashboard">Teacher Dashboard</button></a>
         <a href="{{ url_for('studentcnt') }}"><button id="studentcnt">Student Count</button></a>
         <a href="{{ url_for('analytics') }}"><button id="analytics">Attendance Analytics</button></a>
         <a href="{{ url_for('attendance_summary_by_student') }}"><button id="summary">Attendance Summary</button></a>
+        {%if admin_level <= 1 %}
         <a href="{{url_for('prompt')}}"><button id = "chat">Chat Bot</button></a>
+        {%endif%}
         <button id="adminProfile" onclick="openAdminProfileModal()">Admin Profile</button>
         <!-- Grouped buttons -->
         <div class="button-group">
