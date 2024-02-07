@@ -110,48 +110,65 @@
 
   <script>
     var html5QrCode;
-    
-    document.addEventListener('DOMContentLoaded', function() {
-      initializeQRScanner();
-      getUserProfile();
+
+document.addEventListener('DOMContentLoaded', function() {
+  initializeQRScanner();
+  getUserProfile();
+});
+
+function initializeQRScanner() {
+  html5QrCode = new Html5Qrcode("preview");
+  Html5Qrcode.getCameras().then(function(cameras) {
+    if (cameras.length > 0) {
+      cameras.forEach(function(camera, index) {
+        var option = new Option(camera.label, camera.id);
+        document.getElementById('cameraSelector').add(option);
+      });
+      // Automatically start the first camera. Comment this out if you don't want to auto-start
+      startCamera(cameras[0].id);
+    } else {
+      console.error("No cameras found.");
+      alert("No cameras found. Ensure your camera is enabled and try again.");
+    }
+  }).catch(function(err) {
+    console.error("Error getting cameras", err);
+  });
+
+  document.getElementById('cameraSelector').addEventListener('change', function() {
+    startCamera(this.value);
+  });
+}
+var isScanning = false; // Tracks the scanning state
+
+function startCamera(cameraId) {
+  // If the scanner is already active, stop it first
+  if (html5QrCode && isScanning) {
+    html5QrCode.stop().then(function() {
+      console.log("QR Scanner stopped successfully.");
+      isScanning = false; // Mark scanning as false since the scanner has been stopped
+      // After successfully stopping the scanner, start it again with the new camera
+      startScanner(cameraId);
+    }).catch(function(err) {
+      console.error("Error stopping the QR scanner: ", err);
     });
+  } else {
+    // If the scanner is not active, start it directly
+    startScanner(cameraId);
+  }
+}
 
-    function initializeQRScanner() {
-      html5QrCode = new Html5Qrcode("preview");
-      Html5Qrcode.getCameras().then(function(cameras) {
-        if (cameras.length > 0) {
-          cameras.forEach(function(camera, index) {
-            var option = new Option(camera.label, camera.id);
-            document.getElementById('cameraSelector').add(option);
-          });
-          startCamera(cameras[0].id);
-        } else {
-          console.error("No cameras found.");
-          alert("No cameras found. Ensure your camera is enabled and try again.");
-        }
-      }).catch(function(err) {
-        console.error("Error getting cameras", err);
-      });
+function startScanner(cameraId) {
+  const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+  html5QrCode.start(cameraId, config, function(decodedText) {
+    console.log(`QR Code detected: ${decodedText}`);
+    // Process the decoded QR code as needed
+    sendQRCodeToServer(decodedText);
+    isScanning = true; // Update the scanning state to true
+  }).catch(function(err) {
+    console.error("Error starting the scanner with camera ID " + cameraId, err);
+  });
+}
 
-      document.getElementById('cameraSelector').addEventListener('change', function() {
-        startCamera(this.value);
-      });
-    }
-
-    function startCamera(cameraId) {
-      if (html5QrCode) {
-        html5QrCode.stop().finally(function() {
-          const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-          html5QrCode.start(cameraId, config, function(decodedText) {
-            console.log(`QR Code detected: ${decodedText}`);
-            sendQRCodeToServer(decodedText);
-          }).catch(function(err) {
-            console.error("Error starting QR scanner", err);
-          });
-        });
-      }
-    }
-    
     // Function to send the detected QR code to the server
     function sendQRCodeToServer(qrCode) {
     console.log('QR code detected:', qrCode);
