@@ -1005,7 +1005,7 @@ def generate_qr_code_from_input(subject_name, time_slot, date, year, instructor)
                 students = query_db('SELECT roll_no, name FROM students where year = ? AND Department = ?', (year, department,))
                 db = get_db()
                 for student in students:
-                    db.execute('INSERT INTO Elec_attendance (rollno, stdname, subject, date, time, attendance, teacher_id, year, QR_time, Flag) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,, ?)',
+                    db.execute('INSERT INTO Elec_attendance (rollno, stdname, subject, date, time, attendance, teacher_id, year, QR_time, Flag) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                             (student['roll_no'], student['name'], subject_name, date, time_slot, 0, session['teacher_id'], year, current_time, Flag))
                 db.commit()
 
@@ -1068,6 +1068,37 @@ def generate_analytics_data(week_start_date):
         # Handle the case where the department is not recognized
         raise ValueError("Unrecognized department")
 
+def generate_weekly_attendance_graph(week_start_date):
+    week_start = datetime.strptime(week_start_date, '%Y-%m-%d')
+    week_end = week_start + timedelta(days=6)
+    
+    departments = ['IT', 'Elec', 'AInDS']
+    colors = {'IT': 'blue', 'Elec': 'red', 'AInDS': 'green'}  # Assign colors to each department
+    
+    fig = make_subplots(rows=1, cols=1, subplot_titles=[f'Weekly Attendance (Week of {week_start_date})'])
+    
+    for department in departments:
+        
+        attendance_records = query_db(f"SELECT date, COUNT(*) as total, SUM(attendance) as present FROM {department}_attendance WHERE date >= ? AND date <= ? GROUP BY date", (week_start_date, week_end.strftime('%Y-%m-%d')))
+        
+        if not attendance_records:
+            continue
+        
+        day_wise_percentage = {}
+        for record in attendance_records:
+            day_of_week = datetime.strptime(record['date'], '%Y-%m-%d').strftime('%A')
+            percentage = (record['present'] / record['total']) * 100
+            day_wise_percentage[day_of_week] = percentage
+        
+        days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        percentages = [day_wise_percentage.get(day, 0) for day in days]
+        
+        fig.add_trace(go.Bar(x=days, y=percentages, name=department, marker_color=colors[department]))
+    
+    fig.update_layout(barmode='group', xaxis_title="Day of the Week", yaxis_title="Attendance Percentage", legend_title="Department")
+    
+    # Instead of fig.show(), return the HTML representation
+    return fig.to_html(full_html=False)
 
 
 # Initialize the database
@@ -1476,7 +1507,7 @@ def teacher_dashboard():
     else:
         department = session.get('admin_dept')
     
-    print(department)
+   
     if request.method == 'POST':
         # If it's a POST request, retrieve form data
         subject_name = request.form['subject_name']
@@ -1789,15 +1820,22 @@ def analytics():
     if 'admin_username' not in session:
         return redirect(url_for('admin_login'))
     department = session.get('admin_dept')
+    admin_level = int(session.get('admin_level'))
     analytics_data = ''
     error_message = ''
 
     if request.method == 'POST':
         week_start_date = request.form.get('week_start')
-        analytics_data = generate_analytics_data(week_start_date)
-        if isinstance(analytics_data, str) and analytics_data.startswith("No attendance data"):
-            error_message = analytics_data
-            analytics_data = ''
+        if admin_level == 1 or admin_level == 0:
+            analytics_data = generate_weekly_attendance_graph(week_start_date)
+            if isinstance(analytics_data, str) and analytics_data.startswith("No attendance data"):
+                error_message = analytics_data
+                analytics_data = ''
+        else:
+            analytics_data = generate_analytics_data(week_start_date)
+            if isinstance(analytics_data, str) and analytics_data.startswith("No attendance data"):
+                error_message = analytics_data
+                analytics_data = ''
 
     return render_template('analytics.html', plot_html=analytics_data, error_message=error_message,department=department)
 
