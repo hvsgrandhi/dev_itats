@@ -106,6 +106,7 @@
 <body>
   <h1>QR Scanner</h1>
   <video id="preview"></video>
+  <button id="switchCamera">Switch Camera</button>
   <div id="profile">
     <p id="profileText">Loading profile...</p>
     <button id="viewProfile" onclick="openProfileModal()">View Profile</button>
@@ -124,45 +125,56 @@
 
   <script>
     let scanner;
+let currentCameraIndex = 0;
+let cameras = [];
 
-    // Function to initialize the QR scanner
-    function initializeQRScanner() {
-      console.log('Initializing QR scanner...');
-
-      // Access the rear camera
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } } })
-        .then(function (stream) {
-          preview.srcObject = stream;
-          preview.play();
-
-          // Create an Instascan scanner with the video stream
-          scanner = new Instascan.Scanner({
-            video: preview,
-            mirror: false, // Set mirror to false to use the rear camera
-          });
-
-          scanner.addListener('scan', function (content) {
-            // Handle the detected QR code result (send it to the server)
-            sendQRCodeToServer(content);
-          });
-
-          Instascan.Camera.getCameras().then(function (cameras) {
-            if (cameras.length > 0) {
-              // Use the rear camera (cameras[0])
-              scanner.start(cameras[0]);
-            } else {
-              console.error('No cameras found.');
-            }
-          }).catch(function (e) {
-            console.error(e);
-          });
-        })
-        .catch(function (error) {
-          console.error('Error accessing the camera:', error);
-        });
-
-      getUserProfile();  // Load user profile
+function initializeQRScanner() {
+  console.log('Initializing QR scanner...');
+  Instascan.Camera.getCameras().then(function (availableCameras) {
+    cameras = availableCameras;
+    if (cameras.length > 0) {
+      startScanner(cameras[currentCameraIndex]);
+    } else {
+      console.error('No cameras found.');
+      alert('No cameras found. Please ensure your device has a camera.');
     }
+  }).catch(function (e) {
+    console.error('Error initializing cameras', e);
+  });
+  
+  getUserProfile();  // Load user profile
+}
+
+function startScanner(camera) {
+  scanner = new Instascan.Scanner({
+    video: document.getElementById('preview'),
+    mirror: false,
+  });
+  
+  scanner.addListener('scan', function (content) {
+    console.log('QR code detected:', content);
+    sendQRCodeToServer(content);
+  });
+  
+  scanner.start(camera).catch(function (e) {
+    console.error('Error starting scanner', e);
+  });
+}
+
+function switchCamera() {
+  if (cameras.length > 1) {
+    currentCameraIndex = (currentCameraIndex + 1) % cameras.length;
+    scanner.stop().then(function () {
+      startScanner(cameras[currentCameraIndex]);
+    });
+  } else {
+    alert('No additional camera to switch to.');
+  }
+}
+
+document.getElementById('switchCamera').addEventListener('click', function() {
+  switchCamera();
+});
 
     // Function to send the detected QR code to the server
     function sendQRCodeToServer(qrCode) {
