@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QR Scanner</title>
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
-  <script src="https://cdn.jsdelivr.net/npm/instascan@1.0.0"></script>
+  <script src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     body {
@@ -105,9 +105,7 @@
 
 <body>
   <h1>QR Scanner</h1>
-  <div id="preview"></div>  
-  <button id="switchCamera" onclick="switchCamera()">Switch Camera</button>
-
+  <video id="preview"></video>
   <div id="profile">
     <p id="profileText">Loading profile...</p>
     <button id="viewProfile" onclick="openProfileModal()">View Profile</button>
@@ -125,35 +123,47 @@
   </div>
 
   <script>
-    let scanner = new Instascan.Scanner({ video: document.getElementById('preview'), scanPeriod: 5 });
-    let availableCameras = [];
-    Instascan.Camera.getCameras().then(cameras => {
-      availableCameras = cameras;
-      if (cameras.length > 0) {
-        let selectedCamera = cameras[0];
-        cameras.forEach(camera => {
-          if (camera.name.includes('back')) {
-            selectedCamera = camera;
-          }
+    let scanner;
+
+    // Function to initialize the QR scanner
+    function initializeQRScanner() {
+      console.log('Initializing QR scanner...');
+
+      // Access the rear camera
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } } })
+        .then(function (stream) {
+          preview.srcObject = stream;
+          preview.play();
+
+          // Create an Instascan scanner with the video stream
+          scanner = new Instascan.Scanner({
+            video: preview,
+            mirror: false, // Set mirror to false to use the rear camera
+          });
+
+          scanner.addListener('scan', function (content) {
+            // Handle the detected QR code result (send it to the server)
+            sendQRCodeToServer(content);
+          });
+
+          Instascan.Camera.getCameras().then(function (cameras) {
+            if (cameras.length > 0) {
+              // Use the rear camera (cameras[0])
+              scanner.start(cameras[0]);
+            } else {
+              console.error('No cameras found.');
+            }
+          }).catch(function (e) {
+            console.error(e);
+          });
+        })
+        .catch(function (error) {
+          console.error('Error accessing the camera:', error);
         });
-        scanner.start(selectedCamera);
-      } else {
-        console.error('No cameras found.');
-        alert('No cameras found. Ensure your camera is enabled and try again.');
-      }
-    }).catch(e => console.error(e));
 
-    scanner.addListener('scan', function (content) {
-      console.log('QR Code detected:', content);
-      sendQRCodeToServer(content);
-    });
-
-    function switchCamera() {
-      const currentCameraIndex = availableCameras.indexOf(scanner.camera);
-      const nextCameraIndex = (currentCameraIndex + 1) % availableCameras.length;
-      scanner.start(availableCameras[nextCameraIndex]);
+      getUserProfile();  // Load user profile
     }
-    
+
     // Function to send the detected QR code to the server
     function sendQRCodeToServer(qrCode) {
     console.log('QR code detected:', qrCode);
@@ -232,7 +242,8 @@
     }
 
     // Call the initialization function
-    
+    initializeQRScanner();
+    console.log('User IP:', "{{ session.get('user_ip') }}");
   </script>
 
 </body>
