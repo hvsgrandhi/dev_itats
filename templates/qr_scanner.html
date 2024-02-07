@@ -106,6 +106,8 @@
 <body>
   <h1>QR Scanner</h1>
   <div id="preview"></div>  
+  <button id="switchCamera" onclick="switchCamera()">Switch Camera</button>
+
   <div id="profile">
     <p id="profileText">Loading profile...</p>
     <button id="viewProfile" onclick="openProfileModal()">View Profile</button>
@@ -123,6 +125,9 @@
   </div>
 
   <script>
+    var availableCameras = [];
+    var currentCameraIndex = 0;
+    var html5QrCode = null; // This will be initialized later
 
     // Function to initialize the QR scanner
     document.addEventListener('DOMContentLoaded', () => {
@@ -131,31 +136,64 @@
     });
 
     function initializeQRScanner() {
-      var html5QrCode = new Html5Qrcode("preview");
+      html5QrCode = new Html5Qrcode("preview");
       const config = { fps: 10, qrbox: { width: 250, height: 250 } };
       Html5Qrcode.getCameras().then(cameras => {
-        if (cameras.length > 0) {
-          const cameraId = cameras[0].id; // Use the first camera
-          html5QrCode.start(cameraId, config, decodedText => {
-            // On QR code scan success
-            console.log(`QR Code detected: ${decodedText}`);
-            sendQRCodeToServer(decodedText); // Send QR code to server
-            html5QrCode.stop().then(() => {
-              console.log("QR Scanning stopped.");
-            }).catch(err => {
-              console.error("Unable to stop QR scanner", err);
-            });
-          }).catch(err => {
-            console.error("Error starting QR scanner", err);
-          });
-        } else {
-          console.error("No cameras found.");
-          alert("No cameras found. Ensure your camera is enabled and try again.");
-        }
+          if (cameras.length > 0) {
+              availableCameras = cameras; // Store available cameras for switching
+              // Prefer rear camera if available, else default to the first camera
+              let selectedCameraId = cameras[0].id;
+              cameras.forEach((camera, index) => {
+                  if (camera.label.toLowerCase().includes("back")) {
+                      selectedCameraId = camera.id;
+                      currentCameraIndex = index;
+                  }
+              });
+  
+              html5QrCode.start(selectedCameraId, config, decodedText => {
+                  console.log(`QR Code detected: ${decodedText}`);
+                  sendQRCodeToServer(decodedText);
+                  // Optionally stop the QR scanner after successful scan
+                  // Consider the UX flow you prefer before stopping the scanner automatically
+              }).catch(err => {
+                  console.error("Error starting QR scanner", err);
+              });
+          } else {
+              console.error("No cameras found.");
+              alert("No cameras found. Ensure your camera is enabled and try again.");
+          }
       }).catch(err => {
-        console.error("Error getting cameras", err);
+          console.error("Error getting cameras", err);
       });
+  }
+  
+
+
+  function switchCamera() {
+    if (availableCameras.length <= 1) {
+        console.log("No additional cameras to switch to.");
+        return;
     }
+    // Stop the current camera
+    html5QrCode.stop().then(() => {
+        // Switch to the next camera
+        currentCameraIndex = (currentCameraIndex + 1) % availableCameras.length;
+        const nextCameraId = availableCameras[currentCameraIndex].id;
+
+        // Start the QR scanner with the new camera
+        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+        html5QrCode.start(nextCameraId, config, decodedText => {
+            console.log(`QR Code detected: ${decodedText}`);
+            sendQRCodeToServer(decodedText);
+            // Consider UX flow here as well
+        }).catch(err => {
+            console.error("Error starting QR scanner with new camera", err);
+        });
+    }).catch(err => {
+        console.error("Failed to stop the QR scanner", err);
+    });
+}
+
     
     // Function to send the detected QR code to the server
     function sendQRCodeToServer(qrCode) {
