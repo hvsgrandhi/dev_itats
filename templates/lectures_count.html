@@ -45,16 +45,33 @@
                 width: 100%; /* Full width on smaller screens */
             }
         }
+        #home-button {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 10px 15px;
+            background-color: #428bca;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        #home-button:hover {
+            background-color: #3071a9;
+        }
     </style>
 </head>
 <body>
+    <button id="home-button" onclick="window.location.href='{{ url_for('admin_options') }}'">Home</button>
     <h1>Lecture Counts by Subject</h1>
     <table id="lectureCountsTable">
         <thead>
             <tr>
                 <th>Subject</th>
-                <th>Planned Lectures</th>
                 <th>Conducted Lectures</th>
+                <th>Planned Lectures</th>
             </tr>
         </thead>
         <tbody>
@@ -79,8 +96,9 @@
                         const conductedCountCell = document.createElement('td');
                         conductedCountCell.textContent = row.conducted_lectures;
                         tr.appendChild(subjectCell);
-                        tr.appendChild(plannedCountCell);
                         tr.appendChild(conductedCountCell);
+                        tr.appendChild(plannedCountCell);
+                        
                         tableBody.appendChild(tr);
                     });
                 })

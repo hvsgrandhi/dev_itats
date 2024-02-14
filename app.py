@@ -1402,6 +1402,28 @@ def all_dep():
     return render_template('all_dep.html')
 
 
+@app.route('/all_as', methods = ['GET', 'POST'])
+def all_as():
+    if request.method == 'POST':
+        department = request.form['department']
+        session['check'] = department
+        if department is not None:
+        
+            if department == 'IT':
+                return redirect(url_for('attendance_summary_by_student'))
+            
+            elif department == 'Electrical':
+                return redirect(url_for('attendance_summary_by_student'))
+
+            else:
+                return redirect(url_for('attendance_summary_by_student'))
+        
+    return render_template('all_as.html')
+
+
+
+
+
 @app.route('/Check_route')
 def Check_route():
 
@@ -1845,7 +1867,12 @@ def attendance_summary_by_student():
     if 'admin_username' not in session:
         return redirect(url_for('admin_login'))
 
-    department = session.get('admin_dept')
+    
+    admin_level = int(session.get('admin_level'))
+    if admin_level == 1 or admin_level == 0:
+        department = session.get('check')
+    else:
+        department = session.get('admin_dept')
 
     if request.method == 'POST':
         year = request.form['year']
